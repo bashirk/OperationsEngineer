@@ -29,6 +29,7 @@ class PolicyAccounting(object):
 
         # Generate invoices by policy id with date up until date cursor
         invoices = Invoice.query.filter_by(policy_id=self.policy.id)\
+                                .filter(Invoice.deleted == False)\
                                 .filter(Invoice.bill_date <= date_cursor)\
                                 .order_by(Invoice.bill_date)\
                                 .all()
@@ -87,6 +88,7 @@ class PolicyAccounting(object):
         """
         # Get all invoices by policy id
         invoices = Invoice.query.filter_by(policy_id=self.policy.id)\
+                                .filter(Invoice.deleted == False)\
                                 .order_by(Invoice.bill_date)\
                                 .all()
 
@@ -110,6 +112,7 @@ class PolicyAccounting(object):
 
         # Generate all invoices by policy id prior to or equal to date
         invoices = Invoice.query.filter_by(policy_id=self.policy.id)\
+                                .filter(Invoice.deleted == False)\
                                 .filter(Invoice.cancel_date <= date_cursor)\
                                 .order_by(Invoice.bill_date)\
                                 .all()
@@ -129,7 +132,8 @@ class PolicyAccounting(object):
 
         # Destroy invoices related to policy - if any
         for invoice in self.policy.invoices:
-            invoice.delete()
+            if(invoice.deleted == False):
+                invoice.delete()
 
         billing_schedules = {'Annual': None, 'Two-Pay': 2, 'Quarterly': 4, 'Monthly': 12}
 
@@ -184,6 +188,27 @@ class PolicyAccounting(object):
         for invoice in invoices:
             db.session.add(invoice)
         db.session.commit()
+
+    def change_billing_schedule(self, new_schedule=''):
+        # If trying to update to same schedule, return
+        if(self.policy.billing_schedule == new_schedule):
+            return
+
+         billing_schedules = ['Annual', 'Two-Pay', 'Quarterly', 'Monthly']
+
+         # If not a correct billing schedule print and return
+        if new_schedule not in billing_schedules:
+            print('You have chosen an incorrect billing schedule')
+            return
+
+         # Set all invoices to deleted
+        for invoice in self.policy.invoices:
+            invoice.deleted = True
+            db.session.commit()
+
+         # Update policy to new billing schedule and call make invoices
+        self.policy.billing_schedule = new_schedule
+        self.make_invoices()
 
 ################################
 # The functions below are for the db and 
