@@ -57,7 +57,8 @@ class PolicyAccounting(object):
             try:
                 contact_id = self.policy.named_insured
             except:
-                logging.exception('Encountered an issue with generating contact id for make_payment')
+                logging.exception('Encountered an issue with generating insured name for make_payment')
+                return None
 
         payment = Payment(self.policy.id,
                           contact_id,
@@ -191,6 +192,7 @@ def insert_data():
     policies = []
     p1 = Policy('Policy One', date(2015, 1, 1), 365)
     p1.billing_schedule = 'Annual'
+    p1.named_insured = john_doe_insured.id
     p1.agent = bob_smith.id
     policies.append(p1)
 
