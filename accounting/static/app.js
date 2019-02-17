@@ -14,26 +14,26 @@ function PolicyViewModel(data) {
     self.status = ko.observable(data.status);
 }
 
- function AppViewModel() {
+function AppViewModel() {
     var self = this;
     self.policy = ko.observable(new PolicyViewModel(""));
     self.policy_id = ko.observable().extend({ required: true });
     self.policy_date = ko.observable().extend({ required: true });
 
-     self.error_message = ko.observable("");
+    self.error_message = ko.observable("");
     self.error = ko.observable(false);
 
-     self.search = function () {
+    self.search = function () {
 
-         if (this.errors().length > 0) {
+        if (this.errors().length > 0) {
             this.errors.showAllMessages();
             return;
         }
 
-         params = self.policy_id() + "/" + self.policy_date();
+        params = self.policy_id() + "/" + self.policy_date();
         self.error(false);
 
-         $.ajax({
+        $.ajax({
             url: '/policy/' + params,
             contentType: 'application/json',
             type: 'GET',
@@ -44,21 +44,20 @@ function PolicyViewModel(data) {
             },
             error: function (response) {
                 console.log(JSON.stringify(response))
-                self.onError(true);
-                self.error_message(response.responseText);
+                self.error(true);
+                self.error_message("There is no policy information corresponding to that id and date");
                 return;
             }
         });
     }
 }
 
- appViewModel = new AppViewModel();
+appViewModel = new AppViewModel();
 
- appViewModel.errors = ko.validation.group(appViewModel);
+appViewModel.errors = ko.validation.group(appViewModel);
 
- appViewModel.requireLocation = function() {
+appViewModel.requireLocation = function() {
     viewappViewModelModel.location.extend({required: true});
 };
 
- ko.applyBindings(appViewModel);
- 
+ko.applyBindings(appViewModel);
