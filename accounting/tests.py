@@ -53,13 +53,13 @@ class TestCancelPolicy(unittest.TestCase):
 
     def test_cancel_policy(self):
         pa = PolicyAccounting(self.policy.id)
-        pa.cancel_policy('Canceled', 'Fraud', 'description', date(2015, 1, 1))
+        pa.cancel_policy('Canceled', 'Fraud', 'description')
 
         self.assertEquals(self.policy.invoices[0].deleted, True)
         self.assertEquals(self.policy.status, 'Canceled')
         self.assertEquals(self.policy.status_code, 'Fraud')
         self.assertEquals(self.policy.status_desc, 'description')
-        self.assertEquals(self.policy.cancel_date, date(2015, 1, 1))
+        self.assertEquals(self.policy.cancel_date, datetime.now().date())
 
     def test_expire_policy(self):
         pa = PolicyAccounting(self.policy.id)
@@ -73,7 +73,7 @@ class TestCancelPolicy(unittest.TestCase):
 
     def test_cancel_policy_invalid_status(self):
         pa = PolicyAccounting(self.policy.id)
-        pa.cancel_policy('Random Status', 'Fraud', 'description', date(2015, 1, 1))
+        pa.cancel_policy('Random Status', 'Fraud', 'description')
 
         self.assertEquals(self.policy.invoices[0].deleted, False)
         self.assertEquals(self.policy.status, 'Active')
@@ -83,7 +83,7 @@ class TestCancelPolicy(unittest.TestCase):
 
     def test_cancel_policy_invalid_reason(self):
         pa = PolicyAccounting(self.policy.id)
-        pa.cancel_policy('Canceled', 'Random Status Code', 'description', date(2015, 1, 1))
+        pa.cancel_policy('Canceled', 'Random Status Code', 'description')
 
         self.assertEquals(self.policy.invoices[0].deleted, False)
         self.assertEquals(self.policy.status, 'Active')
@@ -164,7 +164,7 @@ class TestBillingSchedules(unittest.TestCase):
 
 class TestUpdateBillingSchedule(unittest.TestCase):
 
-     @classmethod
+    @classmethod
     def setUpClass(cls):
         cls.test_agent = Contact('Test Agent', 'Agent')
         cls.test_insured = Contact('Test Insured', 'Named Insured')
@@ -178,22 +178,22 @@ class TestUpdateBillingSchedule(unittest.TestCase):
         cls.policy.agent = cls.test_agent.id
         db.session.commit()
 
-     @classmethod
+    @classmethod
     def tearDownClass(cls):
         db.session.delete(cls.test_insured)
         db.session.delete(cls.test_agent)
         db.session.delete(cls.policy)
         db.session.commit()
 
-     def setUp(self):
+    def setUp(self):
         pass
 
-     def tearDown(self):
+    def tearDown(self):
         for invoice in self.policy.invoices:
             db.session.delete(invoice)
         db.session.commit()
 
-     def test_update_billing_schedule_quartely_to_annual(self):
+    def test_update_billing_schedule_quartely_to_annual(self):
         self.policy.billing_schedule = "Quarterly"
         #No invoices currently exist
         self.assertFalse(self.policy.invoices)
@@ -214,7 +214,7 @@ class TestUpdateBillingSchedule(unittest.TestCase):
         self.assertEqual(self.policy.invoices[3].deleted, True)
         self.assertEqual(self.policy.invoices[4].deleted, False)
 
-     def test_update_billing_schedule_annual_to_twopay(self):
+    def test_update_billing_schedule_annual_to_twopay(self):
         self.policy.billing_schedule = "Annual"
         #No invoices currently exist
         self.assertFalse(self.policy.invoices)
@@ -233,7 +233,7 @@ class TestUpdateBillingSchedule(unittest.TestCase):
         self.assertEqual(self.policy.invoices[1].deleted, False)
         self.assertEqual(self.policy.invoices[2].deleted, False)
 
-     def test_update_billing_schedule_to_incorrect_name(self):
+    def test_update_billing_schedule_to_incorrect_name(self):
         self.policy.billing_schedule = "Annual"
         #No invoices currently exist
         self.assertFalse(self.policy.invoices)
@@ -250,7 +250,7 @@ class TestUpdateBillingSchedule(unittest.TestCase):
         #None have been marked as deleted
         self.assertEqual(self.policy.invoices[0].deleted, False)
 
-     def test_update_billing_schedule_to_same_schedule(self):
+    def test_update_billing_schedule_to_same_schedule(self):
         self.policy.billing_schedule = "Annual"
         #No invoices currently exist
         self.assertFalse(self.policy.invoices)
@@ -306,7 +306,7 @@ class TestMakePayment(unittest.TestCase):
 
     def test_make_payment_during_pending_cancellation_due_to_nonpay(self):
         pa = PolicyAccounting(self.test_policy.id)
-        self.payments_made.append(pa.make_payment(self.test_policy.agent, date(2015, 2, 2), 1200))
+        self.payments_made.append(pa.make_payment(self.test_policy.agent, datetime.now().date(), 1200))
         self.assertEquals(len(self.payments_made), 1)
 
 class TestReturnAccountBalance(unittest.TestCase):
